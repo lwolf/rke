@@ -22,13 +22,13 @@ func GenerateKubeAPICertificate(ctx context.Context, certs map[string]Certificat
 	if caCrt == nil || caKey == nil {
 		return fmt.Errorf("CA Certificate or Key is empty")
 	}
-	kubernetesServiceIP, err := GetKubernetesServiceIP(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
+	kubernetesServiceIPs, err := GetKubernetesServiceIPs(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
 	if err != nil {
 		return fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
 	}
 	clusterDomain := rkeConfig.Services.Kubelet.ClusterDomain
 	cpHosts := hosts.NodesToHosts(rkeConfig.Nodes, controlRole)
-	kubeAPIAltNames := GetAltNames(cpHosts, clusterDomain, kubernetesServiceIP, rkeConfig.Authentication.SANs)
+	kubeAPIAltNames := GetAltNames(cpHosts, clusterDomain, kubernetesServiceIPs, rkeConfig.Authentication.SANs)
 	kubeAPICert := certs[KubeAPICertName].Certificate
 	if kubeAPICert != nil &&
 		reflect.DeepEqual(kubeAPIAltNames.DNSNames, kubeAPICert.DNSNames) &&
@@ -56,13 +56,13 @@ func GenerateKubeAPICertificate(ctx context.Context, certs map[string]Certificat
 
 func GenerateKubeAPICSR(ctx context.Context, certs map[string]CertificatePKI, rkeConfig v3.RancherKubernetesEngineConfig) error {
 	// generate API csr and key
-	kubernetesServiceIP, err := GetKubernetesServiceIP(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
+	kubernetesServiceIPs, err := GetKubernetesServiceIPs(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
 	if err != nil {
 		return fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
 	}
 	clusterDomain := rkeConfig.Services.Kubelet.ClusterDomain
 	cpHosts := hosts.NodesToHosts(rkeConfig.Nodes, controlRole)
-	kubeAPIAltNames := GetAltNames(cpHosts, clusterDomain, kubernetesServiceIP, rkeConfig.Authentication.SANs)
+	kubeAPIAltNames := GetAltNames(cpHosts, clusterDomain, kubernetesServiceIPs, rkeConfig.Authentication.SANs)
 	kubeAPICert := certs[KubeAPICertName].Certificate
 	oldKubeAPICSR := certs[KubeAPICertName].CSR
 	if oldKubeAPICSR != nil &&
@@ -355,13 +355,13 @@ func GenerateEtcdCertificates(ctx context.Context, certs map[string]CertificateP
 	if caCrt == nil || caKey == nil {
 		return fmt.Errorf("CA Certificate or Key is empty")
 	}
-	kubernetesServiceIP, err := GetKubernetesServiceIP(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
+	kubernetesServiceIPs, err := GetKubernetesServiceIPs(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
 	if err != nil {
 		return fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
 	}
 	clusterDomain := rkeConfig.Services.Kubelet.ClusterDomain
 	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
-	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, kubernetesServiceIP, []string{})
+	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, kubernetesServiceIPs, []string{})
 	var (
 		dnsNames = make([]string, len(etcdAltNames.DNSNames))
 		ips      = []string{}
@@ -409,13 +409,13 @@ func GenerateEtcdCertificates(ctx context.Context, certs map[string]CertificateP
 }
 
 func GenerateEtcdCSRs(ctx context.Context, certs map[string]CertificatePKI, rkeConfig v3.RancherKubernetesEngineConfig) error {
-	kubernetesServiceIP, err := GetKubernetesServiceIP(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
+	kubernetesServiceIPs, err := GetKubernetesServiceIPs(rkeConfig.Services.KubeAPI.ServiceClusterIPRange)
 	if err != nil {
 		return fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
 	}
 	clusterDomain := rkeConfig.Services.Kubelet.ClusterDomain
 	etcdHosts := hosts.NodesToHosts(rkeConfig.Nodes, etcdRole)
-	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, kubernetesServiceIP, []string{})
+	etcdAltNames := GetAltNames(etcdHosts, clusterDomain, kubernetesServiceIPs, []string{})
 	for _, host := range etcdHosts {
 		etcdName := GetCrtNameForHost(host, EtcdCertName)
 		etcdCrt := certs[etcdName].Certificate

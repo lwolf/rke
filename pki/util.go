@@ -163,7 +163,7 @@ func GetIPHostAltnamesForHost(host *hosts.Host) *cert.AltNames {
 	}
 }
 
-func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceIP net.IP, SANs []string) *cert.AltNames {
+func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceIPs []net.IP, SANs []string) *cert.AltNames {
 	ips := []net.IP{}
 	dnsNames := []string{}
 	for _, host := range cpHosts {
@@ -198,7 +198,7 @@ func GetAltNames(cpHosts []*hosts.Host, clusterDomain string, KubernetesServiceI
 	}
 
 	ips = append(ips, net.ParseIP("127.0.0.1"))
-	ips = append(ips, KubernetesServiceIP)
+	ips = append(ips, KubernetesServiceIPs...)
 	dnsNames = append(dnsNames, []string{
 		"localhost",
 		"kubernetes",
@@ -377,6 +377,18 @@ func getCertKeys(rkeNodes []v3.RKEConfigNode, nodeRole string, rkeConfig *v3.Ran
 	}
 	// worker
 	return certList
+}
+
+func GetKubernetesServiceIPs(serviceClusterRange string) ([]net.IP, error) {
+	var ips []net.IP
+	for _, ir := range strings.Split(serviceClusterRange, ",") {
+		serviceIP, err := GetKubernetesServiceIP(ir)
+		if err != nil {
+			return nil, err
+		}
+		ips = append(ips, serviceIP)
+	}
+	return ips, nil
 }
 
 func GetKubernetesServiceIP(serviceClusterRange string) (net.IP, error) {

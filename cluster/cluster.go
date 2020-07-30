@@ -57,7 +57,7 @@ type Cluster struct {
 	InactiveHosts                    []*hosts.Host
 	K8sWrapTransport                 transport.WrapperFunc
 	KubeClient                       *kubernetes.Clientset
-	KubernetesServiceIP              net.IP
+	KubernetesServiceIP              []net.IP
 	LocalKubeConfigPath              string
 	LocalConnDialerFactory           hosts.DialerFactory
 	PrivateRegistriesMap             map[string]v3.PrivateRegistry
@@ -756,7 +756,7 @@ func InitClusterObject(ctx context.Context, rkeConfig *v3.RancherKubernetesEngin
 
 func (c *Cluster) setNetworkOptions() error {
 	var err error
-	c.KubernetesServiceIP, err = pki.GetKubernetesServiceIP(c.Services.KubeAPI.ServiceClusterIPRange)
+	c.KubernetesServiceIP, err = pki.GetKubernetesServiceIPs(c.Services.KubeAPI.ServiceClusterIPRange)
 	if err != nil {
 		return fmt.Errorf("Failed to get Kubernetes Service IP: %v", err)
 	}
